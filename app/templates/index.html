@@ -11,6 +11,14 @@
     <p>Happy to see you again!</p>
     {% endif %}
 </div>
+<div>
+    Hello,
+    {% if current_user.is_authenticated %}
+    {{ current_user.username }}
+    {% else %}
+    Stranger!
+    {% endif %}
+</div>
 {{ wtf.quick_form(form) }}
 <p>The local date and time is {{ moment(current_time).format('LLL') }}.</p>
 <p>That was {{ moment(current_time).fromNow(refresh=True) }}.</p>
