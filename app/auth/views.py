@@ -3,7 +3,7 @@ from . import auth
 from .. import db
 from flask_login import login_user, logout_user, login_required, current_user
 from ..models import User
-from .forms import LoginForm, RegistrationForm, Change_password, need_reset_password, reset_the_password
+from .forms import LoginForm, RegistrationForm, Change_password, need_reset_password, reset_the_password, Change_email
 from ..email import send_email
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -107,6 +107,9 @@ def password_reset(token):
             db.session.add(user)
             flash('Your password has been updated.')
             return redirect(url_for('auth.login'))
+        else:
+            flash('email error!')
+            return redirect(url_for('auth.reset_password'))
     return render_template('auth/password_reset.html', form=form)
 
 @auth.route('/resetemail', methods=['GET', 'POST'])
@@ -118,7 +121,16 @@ def change_email():
     flash('A new confirmation email has been sent to you by email.')
     return redirect(url_for('auth.login'))
 
-
+@auth.route('/resetemail/<token>', methods=['GET', 'POST'])
+@login_required
+def changetheemail(token):
+    form = Change_email()
+    if form.validate_on_submit():
+        if current_user.changeemail(token):
+            current_user.email = form.newemail.data
+            db.session.add(current_user)
+            flash('You have change your email.')
+    return render_template('auth.change_email.html', form=form)
 
 
 

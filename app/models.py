@@ -121,6 +121,17 @@ class User(UserMixin, db.Model):
         else:
             return True
 
+    def changeemail(self, token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return False
+        if data.get('confirm') != self.id:
+            return False
+        else:
+            return True
+
 
 class AnonymousUser(AnonymousUserMixin):
     def can(self, permissions):
