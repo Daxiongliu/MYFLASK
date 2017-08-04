@@ -16,6 +16,7 @@ class Config:
     FLASKY_MAIL_SENDER = '407414467@qq.com'
     FLASKY_ADMIN = '407414467@qq.com'#os.environ.get('FLASKY_ADMIN')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    FLASKY_POSTS_PER_PAGE = 20
 
 
     @staticmethod
