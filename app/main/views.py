@@ -1,6 +1,6 @@
 # coding: utf-8
 from datetime import datetime
-from flask import render_template, session, redirect, url_for, abort, flash, request, current_app
+from flask import render_template, session, redirect, url_for, abort, flash, request, current_app, make_response
 from flask_login import login_required, current_user
 
 from . import main
@@ -17,13 +17,34 @@ def index():
         db.session.add(post)
         return redirect(url_for('.index'))
     page = request.args.get('page', 1, type=int)
-    pagination = Post.query.order_by(Post.timestamp.desc()).paginate(
+    show_followed = False
+    if current_user.is_authenticated:
+        show_followed = bool(request.cookies.get('show_followed', ''))      #从cookies中获取登陆用户的选择
+    if show_followed:       #显示所关注用户的文章
+        query = current_user.followed_posts
+    else:       #显示所有文章
+        query = Post.query
+    pagination = query.order_by(Post.timestamp.desc()).paginate(
         page, per_page=current_app.config['FLASKY_POSTS_PER_PAGE'],
         error_out=False
     )
     posts = pagination.items
     return render_template('index.html',
-                           form=form,posts=posts,pagination=pagination)
+                           form=form,posts=posts,show_followed=show_followed,pagination=pagination)
+
+@main.route('/all')
+@login_required
+def show_all():
+    resp = make_response(redirect(url_for('.index')))       #设置响应目标，在响应中设置index需要的cookie
+    resp.set_cookie('show_followed', '', max_age=30*24*60*60)
+    return resp
+
+@main.route('/followed')
+@login_required
+def show_followed():
+    resp = make_response(redirect(url_for('.index')))
+    resp.set_cookie('show_followed', '1', max_age=30*24*60*60)
+    return resp
 
 @main.route('/user/<username>')
 def user(username):

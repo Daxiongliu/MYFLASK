@@ -219,6 +219,10 @@ class User(UserMixin, db.Model):
     def is_followed_by(self, user):
         return self.who_followed_me.filter_by(follower_id=user.id).first() is not None
 
+    @property       #联结查询所关注用户的文章，定义成User的属性
+    def followed_posts(self):
+        return Post.query.join(Follow, Follow.followed_id == Post.author_id).filter(Follow.follower_id == self.id)
+
 
 class AnonymousUser(AnonymousUserMixin):
     def can(self, permissions):
