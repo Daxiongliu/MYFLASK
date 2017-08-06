@@ -7,7 +7,7 @@ from . import main
 from .forms import PostForm, EditProfileForm, EditProfileAdminForm
 from .. import db
 from ..models import User, Role, Permission, Post
-from ..decorators import admin_required
+from ..decorators import admin_required, permission_required
 
 @main.route('/', methods=['GET', 'POST'])
 def index():
@@ -96,3 +96,66 @@ def edit(id):   #编辑文章
     form.body.data = post.body
     return render_template('edit_post.html', form=form)
 
+@main.route('/follow/<username>')       #关注路由
+@login_required
+@permission_required(Permission.FOLLOW)     #检查需要权限
+def follow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:        #要关注的人不存在的情况
+        flash('Invalid user.')
+        return redirect(url_for('.index'))
+    if current_user.is_following(user):     #已关注的情况
+        flash('You are already following this user.')
+        return redirect(url_for('.user', username=username))
+    current_user.follow(user)       #上边都满足，调用User模型的follow方法
+    flash('You are now following %s.' % username)
+    return redirect(url_for('.user', username=username))
+
+@main.route('/unfollow/<username>')     #取消关注路由
+@login_required
+@permission_required(Permission.FOLLOW)
+def unfollow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('Invalid user.')
+        return redirect(url_for('.index'))
+    if not current_user.is_following(user):
+        flash("You havn/'t followed this user!")
+        return redirect(url_for('.user', username=username))
+    current_user.unfollow(user)
+    flash('You are now unfollow %s.' % username)
+    return redirect(url_for('.user', username=username))
+
+@main.route('/followers/<username>')
+def followers(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('Invalid user.')
+        return redirect(url_for('.index'))
+    page = request.args.get('page', 1, type=int)
+    pagination = user.who_i_followed.paginate(
+        page, per_page=current_app.config['FLASK_FOLLOWERS_PER_PAGE'],
+        error_out=False
+    )
+    follows = [{'user': item.followed, 'timestamp': item.timestamp}
+               for item in pagination.items]    #列表生成式，把pagination中的用户跟时间迭代出来
+    return render_template('followers.html', user=user, title="Followers of",
+                           endpoint='.followers', pagination=pagination,
+                           follows=follows)
+
+@main.route('/followed_by/<username>')
+def followed_by(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('Invalid user.')
+        return redirect(url_for('.index'))
+    page = request.args.get('page', 1, type=int)
+    pagination = user.who_followed_me.paginate(
+        page, per_page=current_app.config['FLASK_FOLLOWERS_PER_PAGE'],
+        error_out=False
+    )
+    follows = [{'user': item.follower, 'timestamp': item.timestamp}
+               for item in pagination.items]
+    return render_template('followers.html', user=user, title="Followed by",
+                           endpoint='.followed_by', pagination=pagination,
+                           follows=follows)
