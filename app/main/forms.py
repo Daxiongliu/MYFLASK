@@ -49,3 +49,7 @@ class PostForm(FlaskForm):
     body = PageDownField("What's on your mind?", validators=[DataRequired()])
     # pagedownfield是客户端markdown到HTML的转换程序
     submit = SubmitField('Submit')
+
+class CommentForm(FlaskForm):
+    body = StringField('', validators=[DataRequired()])
+    submit = SubmitField('Submit')
