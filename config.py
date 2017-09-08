@@ -20,6 +20,8 @@ class Config:
     FLASKY_POSTS_PER_PAGE = 20
     FLASK_FOLLOWERS_PER_PAGE = 10
     FLASKY_COMMENTS_PER_PAGE = 10
+    UPLOAD_FOLDER = os.getcwd()
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024
 
 
     @staticmethod
