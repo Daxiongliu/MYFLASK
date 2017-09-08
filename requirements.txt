@@ -1,0 +1,14 @@
+Flask==0.12.2
+Flask-Bootstrap
+Flask-Login
+Flask-Mail
+Flask-Migrate
+Flask-PageDown
+Flask-Moment
+Flask-SQLAlchemy
+Flask-Script
+Flask-WTF
+ForgeryPy
+Markdown
+Markupsafe
+jinja2
